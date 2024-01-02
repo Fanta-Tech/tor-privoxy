@@ -2,6 +2,8 @@ FROM dockage/alpine:3.16.2-openrc
 
 COPY assets/root/ /
 
+ENV PORT=8080
+
 RUN apk --no-cache --update --upgrade add tor privoxy socat \
     && mv /etc/tor/torrc.sample  /etc/tor/torrc \
     && mv /etc/privoxy/config.new /etc/privoxy/config \
@@ -14,7 +16,7 @@ RUN apk --no-cache --update --upgrade add tor privoxy socat \
     && mv /etc/privoxy/match-all.action.new /etc/privoxy/match-all.action \
     && mkdir /etc/torrc.d \
     && echo "forward-socks5t / 0.0.0.0:9050 ." >> /etc/privoxy/config \
-    && sed -i 's/listen-address\s*127.0.0.1:8118/listen-address 0.0.0.0:8118/g' /etc/privoxy/config \
+    && sed -i "s/listen-address\s*127.0.0.1:8118/listen-address 0.0.0.0:${PORT}/g" /etc/privoxy/config \
     && sed -i \
         -e 's/#SOCKSPort 192.168.0.1:9100/SOCKSPort 0.0.0.0:9050/g' \
         -e 's/#ControlPort 9051/ControlPort 9052/g' \
@@ -24,4 +26,4 @@ RUN apk --no-cache --update --upgrade add tor privoxy socat \
     && rc-update add privoxy \
     && rc-update add socat
 
-EXPOSE 9050/tcp 9051/tcp 8118/tcp
+EXPOSE 9050/tcp 9051/tcp ${PORT}/tcp
